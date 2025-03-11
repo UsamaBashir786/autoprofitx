@@ -1,0 +1,629 @@
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+.gradient-border {
+  position: relative;
+  overflow: hidden;
+}
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #f6d365, #fda085, #a18cd1, #fbc2eb);
+  background-size: 400% 400%;
+  z-index: -1;
+  animation: gradientFlow 15s ease infinite;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.gradient-border:hover::before {
+  opacity: 1;
+}
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card-hover:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+.gold-gradient {
+  background: linear-gradient(135deg, #f7c52b, #f59e0b);
+}
+
+.gold-text {
+  background: linear-gradient(135deg, #f7c52b, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  transition: all 0.3s ease;
+  border-color: #f59e0b;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b;
+}
+
+/* Circular progress */
+.progress-ring {
+  transform: rotate(-90deg);
+}
+
+.progress-ring__circle {
+  transition: stroke-dashoffset 0.5s;
+  transform-origin: 50% 50%;
+}
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes floatAnimation {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* Sophisticated Background Animation */
+@keyframes luxuryGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Subtle Float Animation */
+@keyframes subtleRise {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* Elegant Pulse Glow */
+@keyframes elegantPulse {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  }
+
+  100% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Reveal Animation */
+@keyframes revealIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Border Glow Animation */
+@keyframes borderGlow {
+  0% {
+    border-color: rgba(100, 100, 150, 0.3);
+  }
+
+  50% {
+    border-color: rgba(150, 150, 200, 0.7);
+  }
+
+  100% {
+    border-color: rgba(100, 100, 150, 0.3);
+  }
+}
+
+/* Main Premium Card */
+.premium-card {
+  background: linear-gradient(135deg, #161629, #1e1e3a, #2d2d4a, #242440);
+  background-size: 300% 300%;
+  animation: luxuryGradient 15s ease infinite;
+  border: 1px solid rgba(100, 100, 150, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transition: all 0.4s ease;
+  opacity: 0;
+  animation: revealIn 1s ease forwards;
+}
+
+.premium-card:hover {
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  transform: translateY(-3px);
+}
+
+/* Premium Container Effect */
+.premium-container {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  animation: borderGlow 4s infinite, elegantPulse 6s infinite;
+}
+
+/* Accent Line */
+.premium-accent {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(200, 200, 255, 0.2),
+    rgba(150, 150, 255, 0.4),
+    rgba(200, 200, 255, 0.2),
+    transparent
+  );
+  width: 100%;
+  opacity: 0.6;
+}
+
+/* Premium Button */
+.premium-button {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #303060, #404080);
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.premium-button:hover {
+  background: linear-gradient(135deg, #404080, #505090);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.premium-button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: all 0.6s;
+}
+
+.premium-button:hover::after {
+  left: 100%;
+}
+
+/* Premium Input */
+.premium-input {
+  background: rgba(30, 30, 60, 0.8);
+  border: 1px solid rgba(100, 100, 150, 0.3);
+  transition: all 0.3s ease;
+}
+
+.premium-input:focus {
+  border-color: rgba(150, 150, 200, 0.7);
+  box-shadow: 0 0 15px rgba(100, 100, 200, 0.3);
+  background: rgba(40, 40, 70, 0.8);
+}
+
+/* Floating Elements */
+.float-effect {
+  animation: subtleRise 6s ease-in-out infinite;
+}
+
+/* Blur Effect Container */
+.blur-backdrop {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Premium Text */
+.premium-text {
+  background: linear-gradient(90deg, #fff, #e0e0ff, #fff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: luxuryGradient 8s ease infinite;
+  background-size: 200% auto;
+}
+
+/* Premium Icon */
+.premium-icon {
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.4));
+  transition: all 0.3s ease;
+}
+
+.premium-icon:hover {
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.6));
+  transform: scale(1.1);
+}
+/* Creates a pulsing glow effect on hover */
+.card-hover:hover {
+  box-shadow: 0 0 25px rgba(234, 179, 8, 0.2);
+}
+
+/* Create a subtle gradient border effect */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(234, 179, 8, 0.7),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gradient-border:hover::before {
+  opacity: 1;
+}
+/* Enhanced CSS for Professional Plan */
+
+/* Base Card Animation */
+@keyframes cardPulse {
+  0% {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(234, 179, 8, 0.1);
+  }
+  50% {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(234, 179, 8, 0.2);
+  }
+  100% {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(234, 179, 8, 0.1);
+  }
+}
+
+/* Background Animation */
+@keyframes gradientBackground {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Button Glow Effect */
+@keyframes buttonGlow {
+  0% {
+    box-shadow: 0 0 15px rgba(234, 179, 8, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(234, 179, 8, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(234, 179, 8, 0.3);
+  }
+}
+
+/* Shine Effect */
+@keyframes shine {
+  0% {
+    left: -100%;
+    opacity: 0.7;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+/* Enhance the Professional Plan Card */
+.professional-plan {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(17, 17, 34, 0.95),
+    rgba(34, 34, 60, 0.95)
+  );
+  background-size: 400% 400%;
+  animation: gradientBackground 15s ease infinite;
+  transition: all 0.5s ease;
+}
+
+.professional-plan:hover {
+  transform: translateY(-5px);
+  animation: cardPulse 4s infinite;
+}
+
+/* Add fancy corner */
+.professional-plan::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 50px 50px 0;
+  border-color: transparent rgba(234, 179, 8, 0.3) transparent transparent;
+  transition: all 0.3s ease;
+}
+
+.professional-plan:hover::after {
+  border-color: transparent rgba(234, 179, 8, 0.6) transparent transparent;
+}
+
+/* Enhanced Button Effects */
+.professional-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+}
+
+.professional-button:hover {
+  animation: buttonGlow 2s infinite;
+}
+
+.professional-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transform: skewX(-25deg);
+}
+
+.professional-button:hover::before {
+  animation: shine 1.5s;
+}
+
+/* Feature Item Hover Effect */
+.feature-item {
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  padding-left: 8px;
+}
+
+.feature-item:hover .feature-icon {
+  transform: scale(1.2) rotate(5deg);
+  color: #ffd700;
+}
+
+/* Elite Badge Animation */
+.elite-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.elite-badge::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: all 0.6s;
+}
+
+.elite-badge:hover::after {
+  left: 100%;
+}
+
+/* Premium Price Animation */
+.premium-price {
+  position: relative;
+  display: inline-block;
+}
+
+.premium-price::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #ffc107, transparent);
+  transition: width 0.4s ease;
+}
+
+.professional-plan:hover .premium-price::before {
+  width: 100%;
+}
+
+/* Add a subtle radial highlight on hover */
+.premium-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at center,
+    transparent 80%,
+    rgba(234, 179, 8, 0.1)
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.professional-plan:hover .premium-highlight {
+  opacity: 1;
+}
+
+/* Professional Plan Settings Icon Animation */
+.settings-icon {
+  transition: all 0.4s ease;
+}
+
+.professional-plan:hover .settings-icon {
+  transform: rotate(90deg);
+}
+/* Animated fade in */
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Toggle switch styles */
+input:checked ~ .dot {
+  transform: translateX(100%);
+  background-color: #f59e0b;
+}
+
+/* Dropdown menus */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+/* Define xs breakpoint if not already in your Tailwind config */
+@media (min-width: 480px) {
+  .xs\:inline {
+    display: inline;
+  }
+
+  .xs\:hidden {
+    display: none;
+  }
+}
+/* Fix for select box overflow on small screens */
+select {
+  width: 100%;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+select option {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+
+
+/* Ensure form inputs don't overflow */
+input,
+textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Adjust padding on very small screens */
+@media (max-width: 360px) {
+  select, 
+  input, 
+  textarea,
+  button {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  .px-4 {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+}
