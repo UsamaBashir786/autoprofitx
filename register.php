@@ -107,7 +107,7 @@ function processReferral($referrerId, $newUserId)
     $stmt->execute();
 
     // Add bonus to referrer's wallet
-    $bonus_amount = 100.00; // ₹100 bonus
+    $bonus_amount = 5.00; // ₹100 bonus
 
     // Check if wallet exists for referrer
     $wallet_check = "SELECT id FROM wallets WHERE user_id = ?";
