@@ -139,7 +139,8 @@ try {
   $maturity_date = date('Y-m-d H:i:s', strtotime('+24 hours'));
 
   // Calculate expected profit (20% of investment amount)
-  $profit = $amount * 0.2;
+  $profit = $amount * // Calculate expected profit (0.25% of investment amount)
+  $profit = $amount * 0.0025;;
   $total_return = $amount + $profit;
 
   // Insert investment record with plan_id
