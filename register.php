@@ -79,7 +79,7 @@ function createBackupCodesForUser($userId, $conn, $codeCount = 10)
   return $codes;
 }
 
-// Function to process a referral when a new user registers
+// Function to process a referral when a new user registers - MODIFIED
 function processReferral($referrerId, $newUserId)
 {
   global $conn;
@@ -100,19 +100,83 @@ function processReferral($referrerId, $newUserId)
   $conn->begin_transaction();
 
   try {
-    // Insert referral record
-    $referral_query = "INSERT INTO referrals (referrer_id, referred_id) VALUES (?, ?)";
+    // Make sure referrals table has the status column
+    $tableCheck = "SHOW COLUMNS FROM referrals LIKE 'status'";
+    $result = $conn->query($tableCheck);
+
+    if ($result->num_rows === 0) {
+      // Status column doesn't exist, add it
+      $alterTable = "ALTER TABLE referrals ADD COLUMN status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending', 
+                    ADD COLUMN paid_at DATETIME DEFAULT NULL";
+      $conn->query($alterTable);
+    }
+
+    // Insert referral record with "pending" status instead of immediately paying
+    $referral_query = "INSERT INTO referrals (referrer_id, referred_id, status) VALUES (?, ?, 'pending')";
     $stmt = $conn->prepare($referral_query);
     $stmt->bind_param("ii", $referrerId, $newUserId);
     $stmt->execute();
 
+    // Commit transaction
+    $conn->commit();
+
+    // BUILD THE REFERRAL TREE - New addition for tree commission system
+    // This should just build the relationship without paying yet
+    onUserRegistration($newUserId, $referrerId);
+
+    return true;
+  } catch (Exception $e) {
+    // Rollback transaction on error
+    $conn->rollback();
+    error_log("Error processing referral: " . $e->getMessage());
+    return false;
+  }
+}
+
+// New function to process pending referrals when a user makes a deposit
+function processReferralOnDeposit($userId, $depositAmount)
+{
+  global $conn;
+
+  // Minimum deposit amount to qualify for the referral bonus
+  $min_deposit_amount = 10.00; // Set your minimum threshold here
+
+  // Check if deposit amount meets the minimum requirement
+  if ($depositAmount < $min_deposit_amount) {
+    return false; // Deposit too small to trigger referral bonus
+  }
+
+  // Find if there's a pending referral for this user
+  $find_referral = "SELECT r.id, r.referrer_id, r.status 
+                    FROM referrals r 
+                    WHERE r.referred_id = ? AND r.status = 'pending'
+                    LIMIT 1";
+
+  $stmt = $conn->prepare($find_referral);
+  $stmt->bind_param("i", $userId);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result->num_rows === 0) {
+    // No pending referral found
+    return false;
+  }
+
+  $referral = $result->fetch_assoc();
+  $referral_id = $referral['id'];
+  $referrer_id = $referral['referrer_id'];
+
+  // Start transaction
+  $conn->begin_transaction();
+
+  try {
     // Add bonus to referrer's wallet
-    $bonus_amount = 5.00; // ₹100 bonus
+    $bonus_amount = 5.00; // ₹5 bonus or whatever amount you want
 
     // Check if wallet exists for referrer
     $wallet_check = "SELECT id FROM wallets WHERE user_id = ?";
     $stmt = $conn->prepare($wallet_check);
-    $stmt->bind_param("i", $referrerId);
+    $stmt->bind_param("i", $referrer_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -120,13 +184,13 @@ function processReferral($referrerId, $newUserId)
       // Create wallet for referrer if it doesn't exist
       $create_wallet = "INSERT INTO wallets (user_id, balance) VALUES (?, ?)";
       $stmt = $conn->prepare($create_wallet);
-      $stmt->bind_param("id", $referrerId, $bonus_amount);
+      $stmt->bind_param("id", $referrer_id, $bonus_amount);
       $stmt->execute();
     } else {
       // Update existing wallet
       $update_wallet = "UPDATE wallets SET balance = balance + ? WHERE user_id = ?";
       $stmt = $conn->prepare($update_wallet);
-      $stmt->bind_param("di", $bonus_amount, $referrerId);
+      $stmt->bind_param("di", $bonus_amount, $referrer_id);
       $stmt->execute();
     }
 
@@ -140,31 +204,98 @@ function processReferral($referrerId, $newUserId)
             reference_id
         ) VALUES (?, 'deposit', ?, 'completed', ?, ?)";
 
-    $description = "Referral Bonus";
-    $reference_id = "REF-" . $newUserId;
+    $description = "Referral Bonus - User made first deposit";
+    $reference_id = "REF-" . $userId;
 
     $stmt = $conn->prepare($transaction_query);
-    $stmt->bind_param("idss", $referrerId, $bonus_amount, $description, $reference_id);
+    $stmt->bind_param("idss", $referrer_id, $bonus_amount, $description, $reference_id);
     $stmt->execute();
 
     // Update referral status to paid
-    $update_referral = "UPDATE referrals SET status = 'paid', paid_at = NOW() WHERE referrer_id = ? AND referred_id = ?";
+    $update_referral = "UPDATE referrals SET status = 'paid', paid_at = NOW() WHERE id = ?";
     $stmt = $conn->prepare($update_referral);
-    $stmt->bind_param("ii", $referrerId, $newUserId);
+    $stmt->bind_param("i", $referral_id);
     $stmt->execute();
+
+    // Process any tree commissions here if needed
+    // processReferralTreeCommission($userId, $referrer_id);
 
     // Commit transaction
     $conn->commit();
-
-    // BUILD THE REFERRAL TREE - New addition for tree commission system
-    onUserRegistration($newUserId, $referrerId);
 
     return true;
   } catch (Exception $e) {
     // Rollback transaction on error
     $conn->rollback();
-    error_log("Error processing referral: " . $e->getMessage());
+    error_log("Error processing referral on deposit: " . $e->getMessage());
     return false;
+  }
+}
+
+// Function to process deposits - Add this to your deposit processing page
+function processDeposit($userId, $amount, $paymentMethod, $transactionId)
+{
+  global $conn;
+
+  // Start transaction
+  $conn->begin_transaction();
+
+  try {
+    // Process the deposit (your existing deposit code)
+    $deposit_sql = "INSERT INTO deposits (user_id, amount, payment_method, transaction_id, status, created_at) 
+                    VALUES (?, ?, ?, ?, 'approved', NOW())";
+
+    $stmt = $conn->prepare($deposit_sql);
+    $stmt->bind_param("idss", $userId, $amount, $paymentMethod, $transactionId);
+    $stmt->execute();
+    $deposit_id = $stmt->insert_id;
+
+    // Update user's wallet
+    $update_wallet = "UPDATE wallets SET balance = balance + ? WHERE user_id = ?";
+    $stmt = $conn->prepare($update_wallet);
+    $stmt->bind_param("di", $amount, $userId);
+    $stmt->execute();
+
+    // Record the transaction
+    $transaction_sql = "INSERT INTO transactions (user_id, transaction_type, amount, status, description, reference_id) 
+                        VALUES (?, 'deposit', ?, 'completed', ?, ?)";
+
+    $description = "Deposit via " . $paymentMethod;
+    $reference_id = "DEP-" . $deposit_id;
+
+    $stmt = $conn->prepare($transaction_sql);
+    $stmt->bind_param("idss", $userId, $amount, $description, $reference_id);
+    $stmt->execute();
+
+    // Check if this is the user's first deposit and process any pending referrals
+    $check_first_deposit = "SELECT COUNT(*) as deposit_count FROM deposits WHERE user_id = ? AND status = 'approved'";
+    $stmt = $conn->prepare($check_first_deposit);
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+
+    if ($row['deposit_count'] == 1) {
+      // This is the first deposit, process the referral
+      processReferralOnDeposit($userId, $amount);
+    }
+
+    // Commit the transaction
+    $conn->commit();
+
+    return [
+      'success' => true,
+      'deposit_id' => $deposit_id
+    ];
+  } catch (Exception $e) {
+    // Rollback on error
+    $conn->rollback();
+    error_log("Error processing deposit: " . $e->getMessage());
+
+    return [
+      'success' => false,
+      'error' => $e->getMessage()
+    ];
   }
 }
 
@@ -302,7 +433,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $walletStmt->execute();
         $walletStmt->close();
 
-        // Process referral if applicable
+        // Process referral if applicable - NOW CREATES PENDING REFERRAL
         if ($referrerId) {
           processReferral($referrerId, $userId);
         }
@@ -362,15 +493,16 @@ $conn->close();
           Join AutoProftX and start your investment journey
         </p>
       </div>
-      <!-- Add this code in your registration.php where you show success messages -->
+
       <?php if (isset($registrationSuccess) && $registrationSuccess && !empty($referralCode) && $referrerId): ?>
         <div class="mb-4 bg-blue-900 text-blue-200 p-4 rounded-md">
           <p class="flex items-center">
             <i class="fas fa-gift mr-2 text-yellow-500"></i>
-            You registered with a referral code! Your referrer has received a ₹100 bonus.
+            You registered with a referral code! The referrer will receive a bonus when you make your first deposit.
           </p>
         </div>
       <?php endif; ?>
+
       <div class="mt-8 bg-gradient-to-b from-gray-900 to-black rounded-xl p-8 shadow-2xl border border-gray-800">
         <?php if (isset($registrationSuccess) && $registrationSuccess): ?>
           <div class="mb-4 bg-green-900 text-green-200 p-4 rounded-md">

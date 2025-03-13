@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Mar 13, 2025 at 10:20 AM
+-- Generation Time: Mar 13, 2025 at 05:42 PM
 -- Server version: 9.1.0
 -- PHP Version: 8.3.14
 
@@ -197,6 +197,52 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `record_withdrawal_request` (IN `p_u
   WHERE user_id = p_user_id AND first_withdrawal_made = 0;
 END$$
 
+DROP PROCEDURE IF EXISTS `select_top_depositor_investments`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `select_top_depositor_investments` ()   BEGIN
+    DECLARE last_month INT;
+    DECLARE last_year INT;
+    
+    -- Get previous month and year
+    SET last_month = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH));
+    SET last_year = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH));
+    
+    -- Check if top depositors already selected for last month
+    IF (SELECT COUNT(*) FROM top_depositor_investments WHERE month = last_month AND year = last_year) = 0 THEN
+        -- Insert top 3 depositors for previous month
+        INSERT INTO top_depositor_investments 
+            (month, year, user_id, position, total_deposit, prize_amount, status)
+        SELECT 
+            last_month AS month,
+            last_year AS year,
+            user_id,
+            @rownum := @rownum + 1 AS position,
+            total_deposited,
+            CASE 
+                WHEN @rownum = 1 THEN 2500.00
+                WHEN @rownum = 2 THEN 2000.00
+                WHEN @rownum = 3 THEN 1500.00
+                ELSE 0.00
+            END AS prize_amount,
+            'pending' AS status
+        FROM 
+            (SELECT 
+                d.user_id, 
+                SUM(d.amount) AS total_deposited
+            FROM 
+                deposits d
+            WHERE 
+                d.status = 'approved' AND
+                MONTH(d.created_at) = last_month AND
+                YEAR(d.created_at) = last_year
+            GROUP BY 
+                d.user_id
+            ORDER BY 
+                total_deposited DESC
+            LIMIT 3) AS top_users,
+            (SELECT @rownum := 0) r;
+    END IF;
+END$$
+
 DROP PROCEDURE IF EXISTS `track_first_deposit`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `track_first_deposit` (IN `p_user_id` INT, IN `p_deposit_amount` DECIMAL(15,2))   BEGIN
   DECLARE v_first_deposit_exists INT;
@@ -380,7 +426,7 @@ CREATE TABLE IF NOT EXISTS `admin_users` (
 --
 
 INSERT INTO `admin_users` (`id`, `username`, `name`, `email`, `password`, `role`, `status`, `last_login`, `created_at`) VALUES
-(1, 'admin', 'Administrator', 'admin@autoproftx.com', '$2y$10$FcuowkyBFb7isUYWUPzNBujVZPsEYqfEW6WBNUmKp9zMDZ6Ktpi.a', 'super_admin', 'active', '2025-03-11 22:28:59', '2025-03-07 10:36:19');
+(1, 'admin', 'Administrator', 'admin@autoproftx.com', '$2y$10$FcuowkyBFb7isUYWUPzNBujVZPsEYqfEW6WBNUmKp9zMDZ6Ktpi.a', 'super_admin', 'active', '2025-03-13 17:31:31', '2025-03-07 10:36:19');
 
 -- --------------------------------------------------------
 
@@ -421,7 +467,7 @@ CREATE TABLE IF NOT EXISTS `backup_codes` (
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `code` (`code`)
-) ENGINE=MyISAM AUTO_INCREMENT=361 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=381 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `backup_codes`
@@ -653,16 +699,26 @@ INSERT INTO `backup_codes` (`id`, `user_id`, `code`, `is_used`, `created_at`, `u
 (348, 49, 'BTGM-F8NM-P2', 0, '2025-03-12 09:02:22', NULL),
 (349, 49, 'C44Z-UBC4-ZT', 0, '2025-03-12 09:02:22', NULL),
 (350, 49, '53F3-FZF5-S5', 0, '2025-03-12 09:02:22', NULL),
-(351, 50, 'RAL3-PK3D-LV', 0, '2025-03-12 10:12:31', NULL),
-(352, 50, 'QRGC-K98H-N4', 0, '2025-03-12 10:12:31', NULL),
-(353, 50, '6NJP-TU5N-4V', 0, '2025-03-12 10:12:31', NULL),
-(354, 50, 'RJUN-69F2-ZJ', 0, '2025-03-12 10:12:31', NULL),
-(355, 50, 'YGX5-QU6C-2Q', 0, '2025-03-12 10:12:31', NULL),
-(356, 50, 'FHA3-S6U6-69', 0, '2025-03-12 10:12:31', NULL),
-(357, 50, 'L5J2-GCLG-QH', 0, '2025-03-12 10:12:31', NULL),
-(358, 50, '5QKR-XEWB-TD', 0, '2025-03-12 10:12:31', NULL),
-(359, 50, 'VDM9-6EXV-K7', 0, '2025-03-12 10:12:31', NULL),
-(360, 50, '233S-4DSF-PF', 0, '2025-03-12 10:12:31', NULL);
+(370, 51, 'S6GN-MBBL-V9', 0, '2025-03-13 17:28:52', NULL),
+(369, 51, 'BM97-VTXW-3F', 0, '2025-03-13 17:28:52', NULL),
+(368, 51, 'AXMJ-4G74-NR', 0, '2025-03-13 17:28:52', NULL),
+(367, 51, 'RQHX-2YL3-85', 0, '2025-03-13 17:28:52', NULL),
+(366, 51, '4VCX-BGM9-SV', 0, '2025-03-13 17:28:52', NULL),
+(365, 51, 'FU7U-UGF2-SS', 0, '2025-03-13 17:28:52', NULL),
+(364, 51, 'PFR2-Q92H-M2', 0, '2025-03-13 17:28:52', NULL),
+(363, 51, 'HRDM-XYNF-DQ', 0, '2025-03-13 17:28:52', NULL),
+(362, 51, 'AWXE-8S6D-HT', 0, '2025-03-13 17:28:52', NULL),
+(361, 51, 'L9S2-46JX-RQ', 0, '2025-03-13 17:28:52', NULL),
+(371, 52, '5T3S-AJGV-N5', 0, '2025-03-13 17:29:34', NULL),
+(372, 52, '5S78-WFZV-JA', 0, '2025-03-13 17:29:34', NULL),
+(373, 52, '5XWL-MNVX-7Y', 0, '2025-03-13 17:29:34', NULL),
+(374, 52, 'J9A6-3AKE-67', 0, '2025-03-13 17:29:34', NULL),
+(375, 52, 'Z9ZV-XTWN-MJ', 0, '2025-03-13 17:29:34', NULL),
+(376, 52, 'ZBLQ-23EV-FZ', 0, '2025-03-13 17:29:34', NULL),
+(377, 52, 'P9HL-6V8F-V6', 0, '2025-03-13 17:29:34', NULL),
+(378, 52, '8CHG-7TJL-S5', 0, '2025-03-13 17:29:34', NULL),
+(379, 52, '9ZZ7-WJ9F-6Z', 0, '2025-03-13 17:29:34', NULL),
+(380, 52, 'PRR8-DR4A-HW', 0, '2025-03-13 17:29:34', NULL);
 
 -- --------------------------------------------------------
 
@@ -727,6 +783,26 @@ INSERT INTO `checkin_rewards` (`id`, `streak_day`, `reward_amount`, `is_active`)
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `crash_games`
+--
+
+DROP TABLE IF EXISTS `crash_games`;
+CREATE TABLE IF NOT EXISTS `crash_games` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `bet_amount` decimal(15,2) NOT NULL,
+  `crash_point` decimal(15,2) NOT NULL,
+  `cashout_multiplier` decimal(15,2) DEFAULT NULL,
+  `auto_cashout` decimal(15,2) DEFAULT NULL,
+  `status` enum('active','cashed_out','crashed') NOT NULL DEFAULT 'active',
+  `winnings` decimal(15,2) DEFAULT '0.00',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `daily_checkins`
 --
 
@@ -741,7 +817,14 @@ CREATE TABLE IF NOT EXISTS `daily_checkins` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_date_unique` (`user_id`,`checkin_date`),
   KEY `user_id` (`user_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `daily_checkins`
+--
+
+INSERT INTO `daily_checkins` (`id`, `user_id`, `checkin_date`, `streak_count`, `reward_amount`, `created_at`) VALUES
+(15, 51, '2025-03-13', 1, 0.25, '2025-03-13 17:29:03');
 
 -- --------------------------------------------------------
 
@@ -765,7 +848,14 @@ CREATE TABLE IF NOT EXISTS `deposits` (
   `admin_notes` text,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `deposits`
+--
+
+INSERT INTO `deposits` (`id`, `user_id`, `amount`, `payment_method_id`, `admin_payment_id`, `transaction_id`, `proof_file`, `notes`, `status`, `created_at`, `processed_at`, `admin_notes`) VALUES
+(29, 52, 30.00, 32, 1, '12345678', 'proof_52_1741887076.png', '', 'approved', '2025-03-13 17:31:16', '2025-03-13 17:31:41', '');
 
 -- --------------------------------------------------------
 
@@ -800,6 +890,28 @@ INSERT INTO `deposit_bonus_tiers` (`id`, `min_amount`, `max_amount`, `bonus_amou
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `deposit_contest_winners`
+--
+
+DROP TABLE IF EXISTS `deposit_contest_winners`;
+CREATE TABLE IF NOT EXISTS `deposit_contest_winners` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `month` int NOT NULL,
+  `year` int NOT NULL,
+  `user_id` int NOT NULL,
+  `position` int NOT NULL,
+  `total_deposit` decimal(15,2) NOT NULL,
+  `prize_amount` decimal(15,2) NOT NULL,
+  `status` enum('pending','paid') NOT NULL DEFAULT 'pending',
+  `paid_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `month_year_position` (`month`,`year`,`position`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `first_deposits`
 --
 
@@ -813,7 +925,33 @@ CREATE TABLE IF NOT EXISTS `first_deposits` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_id` (`user_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `first_deposits`
+--
+
+INSERT INTO `first_deposits` (`id`, `user_id`, `first_deposit_amount`, `first_withdrawal_made`, `created_at`, `updated_at`) VALUES
+(6, 52, 30.00, 0, '2025-03-13 17:31:16', '2025-03-13 17:31:16');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `game_history`
+--
+
+DROP TABLE IF EXISTS `game_history`;
+CREATE TABLE IF NOT EXISTS `game_history` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `game_name` varchar(255) NOT NULL,
+  `bet_amount` decimal(15,2) NOT NULL,
+  `result` enum('win','lose') NOT NULL,
+  `winnings` decimal(15,2) NOT NULL,
+  `details` text,
+  `played_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=130 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -914,7 +1052,7 @@ CREATE TABLE IF NOT EXISTS `leaderboard_deposits` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_period_unique` (`user_id`,`period`),
   KEY `period_rank` (`period`,`rank`)
-) ENGINE=MyISAM AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -965,7 +1103,14 @@ CREATE TABLE IF NOT EXISTS `payment_methods` (
   `is_active` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `payment_methods`
+--
+
+INSERT INTO `payment_methods` (`id`, `user_id`, `payment_type`, `account_name`, `account_number`, `is_default`, `created_at`, `updated_at`, `is_active`) VALUES
+(32, 52, 'binance', 'second', 'TPD4HY9QsWrK6H2qS7iJ', 1, '2025-03-13 17:30:19', '2025-03-13 17:30:19', 1);
 
 -- --------------------------------------------------------
 
@@ -985,7 +1130,14 @@ CREATE TABLE IF NOT EXISTS `referrals` (
   PRIMARY KEY (`id`),
   KEY `referrer_id` (`referrer_id`),
   KEY `referred_id` (`referred_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `referrals`
+--
+
+INSERT INTO `referrals` (`id`, `referrer_id`, `referred_id`, `bonus_amount`, `status`, `created_at`, `paid_at`) VALUES
+(33, 51, 52, 5.00, 'pending', '2025-03-13 17:29:33', NULL);
 
 --
 -- Triggers `referrals`
@@ -1067,7 +1219,14 @@ CREATE TABLE IF NOT EXISTS `referral_tree` (
   UNIQUE KEY `user_parent_unique` (`user_id`,`parent_id`),
   KEY `user_id` (`user_id`),
   KEY `parent_id` (`parent_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `referral_tree`
+--
+
+INSERT INTO `referral_tree` (`id`, `user_id`, `parent_id`, `level`, `created_at`) VALUES
+(24, 52, 51, 1, '2025-03-13 17:29:33');
 
 -- --------------------------------------------------------
 
@@ -1104,14 +1263,14 @@ CREATE TABLE IF NOT EXISTS `remember_tokens` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `remember_tokens`
 --
 
 INSERT INTO `remember_tokens` (`id`, `user_id`, `token`, `expiry_date`, `created_at`) VALUES
-(14, 50, 'b8af862b933ee12b02ce73f17e0e04358c733661a8993dae43222489da9a2887', '2025-04-11 15:12:38', '2025-03-12 10:12:38');
+(15, 51, '34a50da8f66e373a36977cecec5e0723601f77ae157441d5149ad67aa2db5a28', '2025-04-12 22:28:57', '2025-03-13 17:28:57');
 
 -- --------------------------------------------------------
 
@@ -1228,17 +1387,14 @@ CREATE TABLE IF NOT EXISTS `system_settings` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `setting_key` (`setting_key`)
-) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `system_settings`
 --
 
 INSERT INTO `system_settings` (`id`, `setting_key`, `setting_value`, `created_at`, `updated_at`) VALUES
-(12, 'min_deposit_amount', '30', '2025-03-10 15:08:37', '2025-03-10 15:08:37'),
-(11, 'alpha_holding_period', '24', '2025-03-09 19:42:35', '2025-03-09 19:42:35'),
-(10, 'alpha_profit_rate', '4.5', '2025-03-09 19:42:35', '2025-03-09 19:42:35'),
-(9, 'direct_referral_bonus', '5', '2025-03-09 19:33:49', '2025-03-09 19:33:49');
+(13, 'min_deposit_amount', '30', '2025-03-13 17:30:23', '2025-03-13 17:30:23');
 
 -- --------------------------------------------------------
 
@@ -1292,6 +1448,77 @@ CREATE TABLE IF NOT EXISTS `ticket_purchases` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `top_depositor_investments`
+--
+
+DROP TABLE IF EXISTS `top_depositor_investments`;
+CREATE TABLE IF NOT EXISTS `top_depositor_investments` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `month` int NOT NULL,
+  `year` int NOT NULL,
+  `user_id` int NOT NULL,
+  `position` int NOT NULL,
+  `total_deposit` decimal(15,2) NOT NULL,
+  `prize_amount` decimal(15,2) NOT NULL,
+  `bonus_percentage` decimal(5,2) DEFAULT NULL,
+  `investment_plan` varchar(50) DEFAULT NULL,
+  `status` enum('pending','awarded','paid') NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `awarded_at` timestamp NULL DEFAULT NULL,
+  `paid_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `month_year_position` (`month`,`year`,`position`),
+  KEY `user_idx` (`user_id`),
+  KEY `month_year_idx` (`month`,`year`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Triggers `top_depositor_investments`
+--
+DROP TRIGGER IF EXISTS `after_top_depositor_payment`;
+DELIMITER $$
+CREATE TRIGGER `after_top_depositor_payment` AFTER UPDATE ON `top_depositor_investments` FOR EACH ROW BEGIN
+    -- If status changed to paid, add amount to user's wallet
+    IF NEW.status = 'paid' AND OLD.status != 'paid' THEN
+        -- Update user wallet
+        UPDATE wallets 
+        SET balance = balance + NEW.prize_amount, 
+            updated_at = NOW() 
+        WHERE user_id = NEW.user_id;
+        
+        -- Record transaction
+        INSERT INTO transactions (
+            user_id,
+            transaction_type,
+            amount,
+            status,
+            description,
+            reference_id
+        ) VALUES (
+            NEW.user_id,
+            'deposit',
+            NEW.prize_amount,
+            'completed',
+            CONCAT('Top Depositor Prize - ', 
+                  CASE 
+                      WHEN NEW.position = 1 THEN '1st' 
+                      WHEN NEW.position = 2 THEN '2nd' 
+                      WHEN NEW.position = 3 THEN '3rd' 
+                      ELSE CONCAT(NEW.position, 'th')
+                  END,
+                  ' Place for ', 
+                  MONTHNAME(CONCAT(NEW.year, '-', NEW.month, '-01')), 
+                  ' ', NEW.year),
+            CONCAT('TOPDEP-', NEW.id)
+        );
+    END IF;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `transactions`
 --
 
@@ -1306,7 +1533,16 @@ CREATE TABLE IF NOT EXISTS `transactions` (
   `reference_id` varchar(50) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=202 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=208 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `transactions`
+--
+
+INSERT INTO `transactions` (`id`, `user_id`, `transaction_type`, `amount`, `status`, `description`, `reference_id`, `created_at`) VALUES
+(207, 52, 'deposit', 5.00, 'completed', 'Bonus for deposit of $30.00', 'BONUS-78004', '2025-03-13 17:31:41'),
+(206, 52, 'deposit', 30.00, 'completed', 'Deposit Request', 'DEP-56396', '2025-03-13 17:31:16'),
+(205, 51, 'deposit', 0.25, 'completed', 'Daily Check-in Reward (Day 1)', 'CHECKIN-20250313-51', '2025-03-13 17:29:04');
 
 --
 -- Triggers `transactions`
@@ -1369,14 +1605,15 @@ CREATE TABLE IF NOT EXISTS `users` (
   `login_count` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=MyISAM AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `users`
 --
 
 INSERT INTO `users` (`id`, `full_name`, `email`, `referral_code`, `referred_by`, `phone`, `password`, `registration_date`, `last_login`, `status`, `admin_notes`, `created_at`, `login_count`) VALUES
-(50, 'first', 'first@first.com', 'ZCXIDE88', NULL, '+923196977218', '$2y$10$7N2kKiJwgkx441eta5xu8ecDxrQKKxCWLoz1MqBNTRu3jl5owk2L2', '2025-03-12 15:12:31', '2025-03-12 15:12:38', 'active', NULL, '2025-03-12 10:12:31', 0);
+(51, 'first', 'first@first.com', 'D97Q7NE4', NULL, '+923196977218', '$2y$10$MedVXEbQKEAMVAN8GQVo2OqeVXeojQtxc8mwzysUJKC/GZcz1baWK', '2025-03-13 22:28:51', '2025-03-13 22:31:52', 'active', NULL, '2025-03-13 17:28:51', 0),
+(52, 'second', 'second@second.com', 'XVE482PM', 51, '+923196977218', '$2y$10$WrDhiaHCS2dTjzNBzq/32.cbIDvGhGqeAycOazBrSARTqlj47aMAO', '2025-03-13 22:29:33', '2025-03-13 22:30:03', 'active', NULL, '2025-03-13 17:29:33', 0);
 
 -- --------------------------------------------------------
 
@@ -1457,14 +1694,15 @@ CREATE TABLE IF NOT EXISTS `wallets` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `wallets`
 --
 
 INSERT INTO `wallets` (`id`, `user_id`, `balance`, `created_at`, `updated_at`) VALUES
-(50, 50, 0.00, '2025-03-12 10:12:31', '2025-03-12 10:12:31');
+(51, 51, 0.25, '2025-03-13 17:28:51', '2025-03-13 17:29:04'),
+(52, 52, 35.00, '2025-03-13 17:29:33', '2025-03-13 17:31:41');
 
 --
 -- Triggers `wallets`
@@ -1557,6 +1795,12 @@ END$$
 
 DROP EVENT IF EXISTS `process_ticket_profits_daily`$$
 CREATE DEFINER=`root`@`localhost` EVENT `process_ticket_profits_daily` ON SCHEDULE EVERY 1 DAY STARTS '2025-03-11 01:12:20' ON COMPLETION NOT PRESERVE ENABLE DO CALL process_ticket_profits()$$
+
+DROP EVENT IF EXISTS `monthly_top_depositor_investments`$$
+CREATE DEFINER=`root`@`localhost` EVENT `monthly_top_depositor_investments` ON SCHEDULE EVERY 1 MONTH STARTS '2025-04-01 00:05:00' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+    -- Call the procedure to select top depositors
+    CALL select_top_depositor_investments();
+END$$
 
 DELIMITER ;
 COMMIT;
